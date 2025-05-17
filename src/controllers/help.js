@@ -6,5 +6,5 @@ export default function helpCommand(message) {
   \`!sh-edit\` - Edit your friend code.
   \`!sh-help\` - Display this help message.
   `;
-  message.channel.send(helpMessage);
+  message.reply(helpMessage);
 }

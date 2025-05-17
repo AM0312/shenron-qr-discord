@@ -5,7 +5,7 @@ import DblTimestampHelper from "../utils/dblTimeStampHelper.js";
 export default async function qrCommand(message) {
   const mentionedUser = message.mentions.users.first();
   if (!mentionedUser) {
-    return message.channel.send("Please mention a user.");
+    return message.reply("Please mention a user.");
   }
 
   const user = await User.findOne({ userId: mentionedUser.id });
@@ -17,7 +17,7 @@ export default async function qrCommand(message) {
     "4," + user.friendCode + DblTimestampHelper.createDblTimestamp();
   const qrBuffer = await QRCode.toBuffer(qrText, { width: 1000 });
 
-  message.channel.send({
+  message.reply({
     content: `QR code for ${mentionedUser.username}:`,
     files: [{ attachment: qrBuffer, name: `${mentionedUser.username}_qr.png` }],
   });
