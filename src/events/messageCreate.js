@@ -4,6 +4,7 @@ import editCommand from "../controllers/edit.js";
 import qrCommand from "../controllers/qr.js";
 import { OWNER_ID } from "../config.js";
 import Settings from "../models/settings.js";
+import getCommand from "../controllers/get.js";
 
 async function isQrEnabled() {
   const setting = await Settings.findOne({ key: "qrEnabled" });
@@ -88,6 +89,8 @@ export default function setupMessageHandler(client) {
         return message.reply("🚫 QR code functionality is currently disabled.");
       }
       await qrCommand(message);
+    } else if (message.content.startsWith("!sh-get")) {
+      await getCommand(message);
     }
   });
 }
