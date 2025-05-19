@@ -2,9 +2,11 @@ import helpCommand from "../controllers/help.js";
 import registerCommand from "../controllers/register.js";
 import editCommand from "../controllers/edit.js";
 import qrCommand from "../controllers/qr.js";
-import { OWNER_ID } from "../config.js";
 import Settings from "../models/settings.js";
 import getCommand from "../controllers/get.js";
+import { isPrivilegedUser, isOwner } from "../utils/isPrivilegedUser.js";
+import statusCommand from "../controllers/status.js";
+import rebootCommand from "../controllers/reboot.js";
 
 async function isQrEnabled() {
   const setting = await Settings.findOne({ key: "qrEnabled" });
@@ -30,8 +32,8 @@ export default function setupMessageHandler(client) {
     if (message.author.bot) return;
 
     if (message.content.startsWith("!sh-toggle-qr")) {
-      if (message.author.id !== OWNER_ID) {
-        return message.reply("You are not authorized to use this command.");
+      if (!(await isPrivilegedUser(message))) {
+        return message.reply("❌ You are not authorized to use this command.");
       }
 
       const newState = await toggleQr();
@@ -74,7 +76,7 @@ export default function setupMessageHandler(client) {
         console.error("Error pinning/unpinning status message:", err);
       }
 
-      return; // no additional reply
+      return;
     }
 
     if (message.content.startsWith("!sh-help")) {
@@ -91,6 +93,10 @@ export default function setupMessageHandler(client) {
       await qrCommand(message);
     } else if (message.content.startsWith("!sh-get")) {
       await getCommand(message);
+    } else if (message.content.startsWith("!sh-status")) {
+      await statusCommand(message, client);
+    } else if (message.content.startsWith("!sh-reboot")) {
+      await rebootCommand(message);
     }
   });
 }
