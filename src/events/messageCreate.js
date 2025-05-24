@@ -7,6 +7,7 @@ import getCommand from "../controllers/get.js";
 import { isPrivilegedUser, isOwner } from "../utils/isPrivilegedUser.js";
 import statusCommand from "../controllers/status.js";
 import rebootCommand from "../controllers/reboot.js";
+import qrCodeCommand from "../controllers/qrCode.js";
 
 async function isQrEnabled() {
   const setting = await Settings.findOne({ key: "qrEnabled" });
@@ -85,6 +86,13 @@ export default function setupMessageHandler(client) {
       await registerCommand(message);
     } else if (message.content.startsWith("!sh-edit")) {
       await editCommand(message);
+    } else if (message.content.startsWith("!sh-qr-code")) {
+      const enabled = await isQrEnabled();
+      if (!enabled) {
+        return message.reply("🚫 QR code functionality is currently disabled.");
+      }
+      const args = message.content.trim().split(/\s+/).slice(1);
+      await qrCodeCommand(message, args);
     } else if (message.content.startsWith("!sh-qr")) {
       const enabled = await isQrEnabled();
       if (!enabled) {
