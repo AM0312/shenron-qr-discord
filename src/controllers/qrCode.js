@@ -1,42 +1,29 @@
-import QRCode from "qrcode";
-import { AttachmentBuilder, EmbedBuilder } from "discord.js";
-import DblTimestampHelper from "../utils/dblTimeStampHelper.js";
+import { generateQrEmbed } from "../utils/generateQrEmbed.js";
 
-export default async function qrCodeCommand(message, args) {
-  if (!args.length) {
-    return message.reply(
-      "❌ Please provide a friend code. Usage: `!sh-qr-code <friend_code>`"
+export default async function qrCodeCommand(message) {
+  const args = message.content.trim().split(/\s+/).slice(1).slice(0, 3); // up to 3 codes
+
+  if (args.length === 0) {
+    return message.reply("Please provide up to 3 friend codes.");
+  }
+
+  if (args.length < 3) {
+    await message.reply(
+      `💡 Tip: You can now generate QR codes for up to **3 users/codes** in one command!`
     );
   }
 
-  const friendCode = args[0];
+  for (const code of args) {
+    if (!/^[a-zA-Z0-9]{8}$/.test(code)) {
+      await message.reply(`❌ \`${code}\` is not a valid friend code.`);
+      continue;
+    }
 
-  if (!/^[a-z0-9]{8}$/i.test(friendCode)) {
-    return message.reply(
-      "❌ Invalid friend code format. It must be exactly 8 alphanumeric characters."
-    );
-  }
-
-  const qrText = "4," + friendCode + DblTimestampHelper.createDblTimestamp();
-
-  try {
-    const qrBuffer = await QRCode.toBuffer(qrText, { width: 1000 });
-    const attachment = new AttachmentBuilder(qrBuffer, {
-      name: `${friendCode}_qr.png`,
+    const { embed, attachment } = await generateQrEmbed({
+      friendCode: code,
+      label: code,
     });
 
-    const embed = new EmbedBuilder()
-      .setTitle("🎟️ Friend Code QR")
-      .setDescription(`**Friend Code:** \`${friendCode}\``)
-      .setColor(0x00bfff)
-      .setImage(`attachment://${friendCode}_qr.png`)
-      .setTimestamp();
-
     await message.reply({ embeds: [embed], files: [attachment] });
-  } catch (error) {
-    console.error("Error generating QR code:", error);
-    return message.reply(
-      "❌ Failed to generate QR code. Please try again later."
-    );
   }
 }

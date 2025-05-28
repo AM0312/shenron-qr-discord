@@ -1,35 +1,32 @@
 import User from "../models/user.js";
-import QRCode from "qrcode";
-import { AttachmentBuilder, EmbedBuilder } from "discord.js";
-import DblTimestampHelper from "../utils/dblTimeStampHelper.js";
+import { generateQrEmbed } from "../utils/generateQrEmbed.js";
 
 export default async function qrCommand(message) {
-  const mentionedUser = message.mentions.users.first();
-  if (!mentionedUser) {
-    return message.reply("Please mention a user to generate a QR code for.");
+  const mentionedUsers = message.mentions.users.map((u) => u).slice(0, 3);
+
+  if (mentionedUsers.length === 0) {
+    return message.reply("Please mention up to 3 users to generate QR codes.");
   }
 
-  const user = await User.findOne({ userId: mentionedUser.id });
-  if (!user) {
-    return message.reply(`${mentionedUser.username} is not registered yet.`);
+  if (mentionedUsers.length < 3) {
+    await message.reply(
+      `💡 Tip: You can now generate QR codes for up to **3 users/codes** in one command!`
+    );
   }
 
-  const qrText =
-    "4," + user.friendCode + DblTimestampHelper.createDblTimestamp();
-  const qrBuffer = await QRCode.toBuffer(qrText, { width: 1000 });
+  for (const user of mentionedUsers) {
+    const userData = await User.findOne({ userId: user.id });
 
-  const attachment = new AttachmentBuilder(qrBuffer, {
-    name: `${mentionedUser.username}_qr.png`,
-  });
+    if (!userData) {
+      await message.reply(`${user.username} is not registered.`);
+      continue;
+    }
 
-  const embed = new EmbedBuilder()
-    .setTitle("🎟️ Friend Code QR")
-    .setDescription(
-      `**User:** ${mentionedUser.tag}\n**Friend Code:** \`${user.friendCode}\``
-    )
-    .setColor(0x00bfff)
-    .setImage(`attachment://${mentionedUser.username}_qr.png`)
-    .setTimestamp();
+    const { embed, attachment } = await generateQrEmbed({
+      friendCode: userData.friendCode,
+      label: user.tag,
+    });
 
-  return message.reply({ embeds: [embed], files: [attachment] });
+    await message.reply({ embeds: [embed], files: [attachment] });
+  }
 }

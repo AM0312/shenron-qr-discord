@@ -15,13 +15,14 @@ export default async function helpCommand(message) {
         value: "Edit your registered friend code.",
       },
       {
-        name: "`!sh-qr @user`",
-        value: "Generate a QR code for the mentioned user.",
+        name: "`!sh-qr @user1 [@user2 ...]`",
+        value:
+          "🎟️ Generate QR codes for up to **3 mentioned users** who are registered.",
       },
       {
-        name: "`!sh-qr-code <friend_code>`",
+        name: "`!sh-qr-code <code1> [code2 ...]`",
         value:
-          "Generate a QR code directly from a friend code (bypasses registration).",
+          "🚀 Generate QR codes directly from up to **3 friend codes**, no registration required.",
       },
       {
         name: "`!sh-get @user`",
